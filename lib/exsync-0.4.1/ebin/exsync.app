@@ -1,0 +1,13 @@
+{application,exsync,
+             [{applications,[kernel,stdlib,elixir,logger,file_system]},
+              {description,"Yet another Elixir reloader."},
+              {modules,['Elixir.ExSync','Elixir.ExSync.Application',
+                        'Elixir.ExSync.BeamMonitor',
+                        'Elixir.ExSync.BeamMonitor.State',
+                        'Elixir.ExSync.Config','Elixir.ExSync.Logger',
+                        'Elixir.ExSync.SrcMonitor',
+                        'Elixir.ExSync.SrcMonitor.State',
+                        'Elixir.ExSync.Utils']},
+              {registered,[]},
+              {vsn,"0.4.1"},
+              {mod,{'Elixir.ExSync.Application',[]}}]}.

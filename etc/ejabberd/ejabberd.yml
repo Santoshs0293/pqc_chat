@@ -1,0 +1,323 @@
+###
+###              ejabberd configuration file
+###
+### The parameters used in this configuration file are explained at
+### sudo /var/www/html/sbin/ejabberdctl reload_config
+### sudo -u postgres psql -d ejabberd -c "SELECT * FROM archive LIMIT 5;"
+### SELECT * FROM archive WHERE username = 'your-username';
+###       https://docs.ejabberd.im/admin/configuration
+###
+### The configuration file is written in YAML.
+### *******************************************************
+### *******           !!! WARNING !!!               *******
+### *******     YAML IS INDENTATION SENSITIVE       *******
+### ******* MAKE SURE YOU INDENT SECTIONS CORRECTLY *******
+### *******************************************************
+### Refer to http://en.wikipedia.org/wiki/YAML for the brief description.
+###
+
+hosts:
+  - localhost
+  - advisions.site
+
+loglevel: info
+auth_method: sql
+
+sql_type: pgsql
+sql_server: "localhost"
+sql_database: "ejabberd"
+sql_username: "ejabberd"
+sql_password: "ejabberd"
+
+certfiles:
+  - /etc/letsencrypt/live/advisions.site/fullchain.pem
+  - /etc/letsencrypt/live/advisions.site/privkey.pem
+
+
+## If you already have certificates, list them here
+# certfiles:
+#  - /etc/letsencrypt/live/domain.tld/fullchain.pem
+#  - /etc/letsencrypt/live/domain.tld/privkey.pem
+
+listen:
+  -
+    port: 5222
+    ip: "::"
+    module: ejabberd_c2s
+    max_stanza_size: 262144
+    shaper: c2s_shaper
+    access: c2s
+    starttls_required: true
+  -
+    port: 5223
+    ip: "::"
+    module: ejabberd_c2s
+    max_stanza_size: 262144
+    shaper: c2s_shaper
+    access: c2s
+    tls: true
+  -
+    port: 5269
+    ip: "::"
+    module: ejabberd_s2s_in
+    max_stanza_size: 524288
+    shaper: s2s_shaper
+  -
+    port: 5443
+    ip: "::"
+    module: ejabberd_http
+    tls: true
+    request_handlers:
+      /admin: ejabberd_web_admin
+      /api: mod_http_api
+      /bosh: mod_bosh
+      /captcha: ejabberd_captcha
+      /upload: mod_http_upload
+      /ws: ejabberd_http_ws
+  -
+    port: 5280
+    ip: "::"
+    module: ejabberd_http
+    request_handlers:
+      "/admin": ejabberd_web_admin
+      "/bosh": mod_bosh
+      "/http-bind": mod_bosh
+      "/captcha": ejabberd_captcha
+      "/upload": mod_http_upload
+      "/ws": ejabberd_http_ws
+      /websocket: ejabberd_http_ws
+      /conversejs: mod_conversejs
+      /.well-known/acme-challenge: ejabberd_acme
+    web_admin: true
+    http_bind: true
+    tls: false
+  -
+    port: 443
+    module: ejabberd_http
+    tls: true
+    request_handlers:
+      /websocket: ejabberd_http_ws
+      /conversejs: mod_conversejs
+
+  -
+    port: 5478
+    ip: "::"
+    transport: udp
+    module: ejabberd_stun
+    use_turn: true
+    ## The server's public IPv4 address:
+    # turn_ipv4_address: "203.0.113.3"
+    ## The server's public IPv6 address:
+    # turn_ipv6_address: "2001:db8::3"
+  -
+    port: 1883
+    ip: "::"
+    module: mod_mqtt
+    backlog: 1000
+
+s2s_use_starttls: optional
+
+acl:
+  local:
+    user_regexp: ""
+  loopback:
+    ip:
+      - 127.0.0.0/8
+      - ::1/128
+  admin:
+    user:
+      - "admin@localhost"
+  trusted_network:
+    ip:
+      - 127.0.0.0/8
+      - ::1/128
+      - 0.0.0.0/0  
+  register:
+    - user_glob: "*"
+  remove_account:
+    - user_glob: "*"
+
+access_rules:
+  local:
+    allow: local
+  c2s:
+    deny: blocked
+    allow: all
+  announce:
+    allow: admin
+  configure:
+    allow: admin
+  muc_create:
+    allow: all
+  pubsub_createnode:
+    allow: all
+  trusted_network:
+    allow: trusted_network
+  register:
+    allow: all
+  
+
+api_permissions:
+  "console commands":
+    from: ejabberd_ctl
+    who: all
+    what: "*"
+  "webadmin commands":
+    from: ejabberd_web_admin
+    who: admin
+    what: "*"
+  "admin access":
+    who:
+      access:
+        allow:
+          - acl: loopback
+          - acl: admin
+      oauth:
+        scope: "ejabberd:admin"
+        access:
+          allow:
+            - acl: loopback
+            - acl: admin
+    what:
+      - "*"
+      - "!stop"
+      - "!start"
+  "public commands":
+    who:
+      ip: 127.0.0.1/8
+    what:
+      - status
+      - connected_users_number
+
+shaper:
+  normal:
+    rate: 3000
+    burst_size: 20000
+  fast: 100000
+
+shaper_rules:
+  max_user_sessions: 10
+  max_user_offline_messages:
+    5000: admin
+    100: all
+  c2s_shaper:
+    none: admin
+    normal: all
+  s2s_shaper: fast
+  registration_shaper: none
+
+modules:
+  mod_adhoc: {}
+  mod_admin_extra: {}
+  mod_announce:
+    access: announce
+  mod_avatar: {}
+  mod_blocking: {}
+  mod_bosh:
+    max_inactivity: 1200
+  mod_caps: {}
+  mod_carboncopy: {}
+  mod_client_state: {}
+  mod_conversejs:
+    conversejs_resources: "/var/www/html/converse.js/dist" # Path to locally hosted Converse.js
+    websocket_url: "wss://advisions.site/websocket" # Enable WebSocket
+    conversejs_options:
+      auto_away: 300
+      clear_cache_on_logout: true
+      locked_domain: "advisions.site"
+      message_archiving: always
+      theme: "Dracula"
+  mod_configure: {}
+  mod_disco: {}
+  mod_fail2ban: {}
+  mod_http_api: {}
+  mod_http_upload:
+    docroot: "/var/www/html/upload"
+    put_url: "https://@HOST@:5443/upload"
+    max_size: 104857600  # 100 MB (adjust as needed)
+    custom_headers:
+      "Access-Control-Allow-Origin": "*"
+      "Access-Control-Allow-Methods": "GET,HEAD,PUT,OPTIONS"
+      "Access-Control-Allow-Headers": "Content-Type"
+  mod_last: {}
+  mod_mam:
+    ## Mnesia is limited to 2GB, better to use an SQL backend
+    ## For small servers SQLite is a good fit and is very easy
+    ## to configure. Uncomment this when you have SQL configured:
+    db_type: sql
+    assume_mam_usage: true
+    default: always
+  mod_mqtt: {}
+  mod_muc:
+    access:
+      - allow
+    access_admin:
+      - allow: admin
+    access_create: muc_create
+    access_persistent: muc_create
+    access_mam:
+      - allow
+    default_room_options:
+      mam: true
+  mod_muc_admin: {}
+  mod_offline:
+    access_max_user_messages: max_user_offline_messages
+  mod_ping: {}
+  mod_privacy: {}
+  mod_private: {}
+  mod_proxy65:
+    access: local
+    max_connections: 5
+  mod_pubsub:
+    access_createnode: pubsub_createnode
+    db_type: sql
+    plugins:
+      - flat
+      - pep
+      - hometree
+    force_node_config:
+      "eu.siacs.conversations.axolotl.bundles":
+        access_model: open
+        persist_items: true
+        max_items: 1000
+        publish_model: open
+        notify_config: true
+        notify_delete: true
+        notify_retract: true
+    pep_mapping:
+      eu.siacs.conversations.axolotl.bundles: omemo
+      ## Avoid buggy clients to make their bookmarks public
+     # storage:bookmarks:
+      #  access_model: whitelist
+      #storage:keys:
+      #  access_model: open
+  mod_push: {}
+  mod_push_keepalive: {}
+  mod_register:
+    ## Only accept registration requests from the "trusted"
+    ## network (see access_rules section above).
+    ## Think twice before enabling registration from any
+    ## address. See the Jabber SPAM Manifesto for details:
+    ## https://github.com/ge0rg/jabber-spam-fighting-manifesto
+    ip_access: trusted_network
+    access: register
+    access_remove: remove_account  # Allow account deletion
+    captcha_protected: false
+  mod_roster:
+    versioning: true
+  mod_s2s_bidi: {}
+  mod_s2s_dialback: {}
+  mod_shared_roster: {}
+  mod_stream_mgmt:
+    resend_on_timeout: if_offline
+  mod_stun_disco: {}
+  mod_vcard: {}
+  mod_vcard_xupdate: {}
+  mod_version:
+    show_os: false
+  
+
+### Local Variables:
+### mode: yaml
+### End:
+### vim: set filetype=yaml tabstop=8

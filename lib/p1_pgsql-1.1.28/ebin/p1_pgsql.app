@@ -1,0 +1,10 @@
+{application,p1_pgsql,
+             [{description,"PostgreSQL driver"},
+              {vsn,"1.1.28"},
+              {modules,[pgsql,pgsql_app,pgsql_proto,pgsql_sasl,pgsql_socket,
+                        pgsql_sup,pgsql_util]},
+              {registered,[]},
+              {applications,[kernel,stdlib,ssl,xmpp]},
+              {mod,{pgsql_app,[]}},
+              {licenses,["EPL 1.1","Apache 2.0"]},
+              {links,[{"Github","https://github.com/processone/p1_pgsql"}]}]}.

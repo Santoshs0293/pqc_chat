@@ -1,0 +1,12 @@
+{application,stun,
+             [{description,"STUN and TURN library for Erlang / Elixir"},
+              {vsn,"1.2.15"},
+              {modules,[stun,stun_acceptor,stun_acceptor_sup,stun_app,
+                        stun_codec,stun_listener,stun_listener_sup,
+                        stun_logger,stun_shaper,stun_sup,stun_test,
+                        stun_tmp_sup,turn,turn_sm,turn_tmp_sup]},
+              {registered,[]},
+              {applications,[kernel,stdlib,fast_tls,p1_utils]},
+              {mod,{stun_app,[]}},
+              {licenses,["Apache 2.0"]},
+              {links,[{"Github","https://github.com/processone/stun"}]}]}.

@@ -1,0 +1,11 @@
+{application,p1_acme,
+             [{description,"ACME client"},
+              {vsn,"1.0.24"},
+              {modules,[p1_acme,p1_acme_codec]},
+              {registered,[]},
+              {applications,[kernel,stdlib,crypto,inets,public_key,ssl,
+                             base64url,idna,jiffy,jose,yconf]},
+              {env,[]},
+              {mod,{p1_acme,[]}},
+              {licenses,["Apache 2.0"]},
+              {links,[{"Github","https://github.com/processone/p1_acme"}]}]}.

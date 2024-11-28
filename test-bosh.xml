@@ -1,0 +1,8 @@
+<body xmlns='http://jabber.org/protocol/httpbind'>
+    <iq type='set' id='reg1' xmlns='jabber:client'>
+        <query xmlns='jabber:iq:register'>
+            <username>testuser</username>
+            <password>testpassword</password>
+        </query>
+    </iq>
+</body>
